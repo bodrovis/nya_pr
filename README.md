@@ -151,6 +151,14 @@ updated_at
 html_url
 ```
 
+By default, NyaPr stops after collecting **100 open pull requests**. You can change the limit with `--limit`:
+
+```bash
+ruby run.rb \
+  --user bodrovis \
+  --limit 250
+```
+
 Use another output file with:
 
 ```bash
@@ -197,6 +205,7 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
 -o, --owners LIST         Additional users or organizations, comma-separated
     --csv FILE            Repository cache CSV
     --pr-csv FILE         Pull request output CSV
+-l, --limit N             Maximum number of pull requests to collect
 -r, --refresh             Refresh repositories from GitHub
     --skip-archived       Ignore archived repositories
     --log-level LEVEL     Logging level
@@ -210,6 +219,7 @@ ruby run.rb \
   --owners lokalise,scrapingbee \
   --csv repositories.csv \
   --pr-csv pull_requests.csv \
+  --limit 250 \
   --skip-archived \
   --refresh \
   --log-level debug

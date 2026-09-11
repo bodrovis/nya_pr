@@ -2,6 +2,7 @@
 
 require 'zeitwerk'
 require 'logger'
+require 'csv'
 
 loader = Zeitwerk::Loader.for_gem
 loader.setup
