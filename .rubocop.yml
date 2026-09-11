@@ -1,0 +1,18 @@
+plugins:
+ - rubocop-performance
+
+AllCops:
+  TargetRubyVersion: 4.0
+  NewCops: enable
+
+Metrics/BlockLength:
+  Max: 36
+
+Metrics/BlockNesting:
+  Max: 2
+  
+Layout/DotPosition:
+  EnforcedStyle: trailing
+
+Style/Documentation:
+  Enabled: false
