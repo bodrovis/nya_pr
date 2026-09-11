@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.version = NyaPr::VERSION
   spec.authors = ['Elijah S. Krukowski']
   spec.email = ['elskruk@proton.me']
-  spec.summary = "A tiny kawaii CLI for hunting down GitHub pull requests"
+  spec.summary = 'A tiny kawaii CLI for hunting down GitHub pull requests'
 
   spec.description = <<~DESCRIPTION
     NyaPr collects repositories you own or contribute to, finds their open pull

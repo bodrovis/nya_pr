@@ -51,7 +51,7 @@ Install the dependencies:
 bundle install
 ```
 
-Create a `.env` file:
+Create an `.env` file:
 
 ```text
 GITHUB_TOKEN=your_github_token
@@ -232,16 +232,6 @@ Contribution checks run concurrently using a limited number of worker threads.
 Empty Git repositories are simply skipped.
 
 Repositories with pull requests disabled are also skipped when searching for PRs.
-
-## Notes and todos
-
-NyaPr is intentionally small and opinionated. At the moment:
-
-* repository contribution detection is based on commits visible through the GitHub API;
-* repository discovery is cached, but pull requests are fetched fresh on every run;
-* open PR collection stops after 100 results (TODO).
-
-More nya may happen later.
 
 ## LICENSE
 

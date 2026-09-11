@@ -74,9 +74,11 @@ module NyaPr
     def reject_archived(repositories)
       return repositories unless options[:skip_archived]
 
-      repositories.reject do |repository|
+      non_archived_repos = repositories.reject do |repository|
         repository['archived']
-      end.tap do |filtered|
+      end
+
+      non_archived_repos.tap do |filtered|
         skipped = repositories.size - filtered.size
 
         NyaPr.logger.info("Skipped #{skipped} archived repositories")
@@ -101,7 +103,7 @@ module NyaPr
 
     def find_pull_requests
       PullRequestFinder.
-        new(client, repositories).
+        new(client, repositories, limit: options[:limit]).
         find
     end
 
@@ -114,7 +116,7 @@ module NyaPr
     end
 
     def client
-      @client ||= NyaPr.client(token, debug: options[:debug])
+      @client ||= Client.new(token, debug: options[:debug])
     end
 
     def token
@@ -152,7 +154,8 @@ module NyaPr
         pr_csv: DEFAULT_PULL_REQUESTS_CSV,
         refresh: false,
         skip_archived: false,
-        log_level: 'info'
+        log_level: 'info',
+        limit: PullRequestFinder::MAX_PULL_REQUESTS
       }
     end
 
@@ -167,12 +170,26 @@ module NyaPr
         refresh_option(parser, result)
         skip_archived_option(parser, result)
         log_level_option(parser, result)
+        limit_option(parser, result)
       end
     end
 
     def username_option(parser, result)
       parser.on('-u', '--user USERNAME', 'GitHub username') do |value|
         result[:username] = value
+      end
+    end
+
+    def limit_option(parser, result)
+      parser.on(
+        '-l',
+        '--limit N',
+        Integer,
+        'Maximum number of pull requests'
+      ) do |value|
+        raise OptionParser::InvalidArgument, 'limit must be greater than 0' unless value.positive?
+
+        result[:limit] = value
       end
     end
 

@@ -16,7 +16,7 @@ module NyaPr
 
     def find
       NyaPr.logger.info(
-        "Searching for open pull requests in #{repositories.size} repositories"
+        "Searching for up to #{limit} open pull requests in #{repositories.size} repositories"
       )
 
       pull_requests = collect_pull_requests

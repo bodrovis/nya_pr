@@ -8,10 +8,6 @@ loader.setup
 
 module NyaPr
   class << self
-    def client(token, **)
-      Client.new(token, **)
-    end
-
     def logger
       @logger ||= Logger.new($stderr).tap do |logger|
         logger.level = Logger::INFO
