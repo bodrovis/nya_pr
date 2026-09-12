@@ -5,9 +5,6 @@ require 'optparse'
 module NyaPr
   module Cli
     class Parser
-      DEFAULT_REPOSITORIES_CSV = 'repositories.csv'
-      DEFAULT_PULL_REQUESTS_CSV = 'pull_requests.csv'
-
       LOG_LEVELS = {
         'debug' => Logger::DEBUG,
         'info' => Logger::INFO,
@@ -35,11 +32,11 @@ module NyaPr
       def default_options
         {
           owners: [],
-          csv: DEFAULT_REPOSITORIES_CSV,
-          pr_csv: DEFAULT_PULL_REQUESTS_CSV,
+          repositories_csv: nil,
+          pull_requests_dir: nil,
           refresh: false,
           skip_archived: false,
-          log_level: 'info',
+          log_level: Logger::INFO,
           limit: PullRequest::Finder::MAX_PULL_REQUESTS
         }
       end
@@ -50,8 +47,8 @@ module NyaPr
 
           username_option(parser, options)
           owners_option(parser, options)
-          csv_option(parser, options)
-          pr_csv_option(parser, options)
+          repositories_csv_option(parser, options)
+          pull_requests_dir_option(parser, options)
           limit_option(parser, options)
           refresh_option(parser, options)
           skip_archived_option(parser, options)
@@ -71,15 +68,21 @@ module NyaPr
         end
       end
 
-      def csv_option(parser, options)
-        parser.on('--csv FILE', 'Repository CSV file') do |value|
-          options[:csv] = value
+      def repositories_csv_option(parser, options)
+        parser.on(
+          '--repositories-csv PATH',
+          'Repository cache CSV path'
+        ) do |value|
+          options[:repositories_csv] = value
         end
       end
 
-      def pr_csv_option(parser, options)
-        parser.on('--pr-csv FILE', 'Pull requests CSV file') do |value|
-          options[:pr_csv] = value
+      def pull_requests_dir_option(parser, options)
+        parser.on(
+          '--pull-requests-dir PATH',
+          'Directory for pull request runs'
+        ) do |value|
+          options[:pull_requests_dir] = value
         end
       end
 

@@ -15,10 +15,17 @@ module NyaPr
       pull_requests = find_pull_requests
 
       pull_request_printer.print(pull_requests)
-      pull_request_store.write(pull_requests)
+      save_pull_requests(pull_requests)
     end
 
     private
+
+    def paths
+      @paths ||= Paths.new(
+        repositories_path: options[:repositories_csv],
+        pull_requests_dir: options[:pull_requests_dir]
+      )
+    end
 
     def options
       @options ||= Cli::Parser.new(@argv).parse
@@ -43,6 +50,14 @@ module NyaPr
       )
     end
 
+    def save_pull_requests(pull_requests)
+      pull_request_store.write(pull_requests)
+
+      NyaPr.logger.info(
+        "Saved #{pull_requests.size} pull requests to #{pull_request_store.path}"
+      )
+    end
+
     def find_pull_requests
       PullRequest::Finder.
         new(
@@ -54,11 +69,11 @@ module NyaPr
     end
 
     def repository_store
-      @repository_store ||= Repository::CsvStore.new(options[:csv])
+      @repository_store ||= Repository::CsvStore.new(paths.repositories_csv)
     end
 
     def pull_request_store
-      @pull_request_store ||= PullRequest::CsvStore.new(options[:pr_csv])
+      @pull_request_store ||= PullRequest::CsvStore.new(paths.pull_requests_csv)
     end
 
     def pull_request_printer

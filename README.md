@@ -2,7 +2,9 @@
 
 **NyaPr** is a tiny Ruby tool for people who have too many GitHub repositories, too many organizations, too many pull requests, and absolutely no desire to click through all that manually.
 
-It collects repositories that actually matter to you, finds their open pull requests, and puts everything into one place. For maximum kawaii.
+It collects repositories you own or contribute to, finds their open pull requests, and puts everything into one place.
+
+For maximum kawaii.
 
 ## Why NyaPr?
 
@@ -17,7 +19,9 @@ What it does not make particularly convenient is:
 
 > Show me open pull requests from my own repositories **plus** repositories in these organizations where I actually contribute.
 
-NyaPr does exactly that. The basic flow is:
+NyaPr does exactly that.
+
+The basic flow is:
 
 ```text
 GitHub users / organizations
@@ -32,7 +36,7 @@ cache the repository list
         ↓
 find open pull requests
         ↓
-terminal + CSV
+terminal + timestamped CSV
         ↓
 nya ฅ^•ﻌ•^ฅ
 ```
@@ -51,7 +55,7 @@ Install the dependencies:
 bundle install
 ```
 
-Create an `.env` file:
+Create a `.env` file:
 
 ```text
 GITHUB_TOKEN=your_github_token
@@ -75,14 +79,43 @@ ruby run.rb \
   --owners org1,org2
 ```
 
-Your own repositories are always included automatically. For other users and organizations, NyaPr checks which repositories contain commits authored by the specified GitHub user.
+Your own repositories are always included automatically.
+
+For other users and organizations, NyaPr checks which repositories contain commits authored by the specified GitHub user.
+
+## Data directory
+
+By default, NyaPr stores generated data inside the `data` directory.
+
+The repository cache is stored as:
+
+```text
+data/repositories.csv
+```
+
+Each pull request scan gets its own timestamped directory:
+
+```text
+data/
+├── repositories.csv
+├── pull_requests_20260912_201845/
+│   └── pull_requests.csv
+└── pull_requests_20260912_204112/
+    └── pull_requests.csv
+```
+
+This keeps repository discovery cached while preserving the results of individual pull request scans.
+
+Missing directories are created automatically.
 
 ## Repository cache
 
-Repository discovery can involve a lot of GitHub API requests, especially for large organizations. NyaPr therefore stores discovered repositories in:
+Repository discovery can involve a lot of GitHub API requests, especially for large organizations.
+
+NyaPr therefore stores discovered repositories in:
 
 ```text
-repositories.csv
+data/repositories.csv
 ```
 
 On subsequent runs, this file is used as a cache instead of scanning GitHub again.
@@ -96,13 +129,15 @@ ruby run.rb \
   --refresh
 ```
 
-You can use another cache file:
+You can use another repository cache file:
 
 ```bash
 ruby run.rb \
   --user bodrovis \
-  --csv my_repositories.csv
+  --repositories-csv "C:\Users\me\repositories.csv"
 ```
+
+Both relative and absolute paths are supported.
 
 Repository contribution checks are performed concurrently using a small thread pool, because waiting for hundreds of HTTP requests one by one is not particularly kawaii.
 
@@ -125,20 +160,30 @@ Maximum efficiency. Minimum archaeology.
 
 ## Pull requests
 
-After preparing the repository list, NyaPr searches each repository for open pull requests. Results are printed to the terminal:
+After preparing the repository list, NyaPr searches each repository for open pull requests.
+
+Results are grouped by repository and printed to the terminal:
 
 ```text
-lokalise/example #42 Fix pagination — @someone — https://github.com/...
-lokalise/another-repo #81 [DRAFT] Add nya support — @someone_else — https://github.com/...
+bodrovis/example
+----------------
+
+#42 Fix pagination
+  Author: @someone
+  https://github.com/bodrovis/example/pull/42
+
+#43 [DRAFT] Add nya support
+  Author: @someone_else
+  https://github.com/bodrovis/example/pull/43
 ```
 
-They are also written to:
+They are also written to a timestamped CSV file:
 
 ```text
-pull_requests.csv
+data/pull_requests_20260912_201845/pull_requests.csv
 ```
 
-The CSV contains useful metadata such as:
+The CSV contains:
 
 ```text
 repository
@@ -151,7 +196,9 @@ updated_at
 html_url
 ```
 
-By default, NyaPr stops after collecting **100 open pull requests**. You can change the limit with `--limit`:
+By default, NyaPr stops after collecting **100 open pull requests**.
+
+You can change the limit with `--limit`:
 
 ```bash
 ruby run.rb \
@@ -159,26 +206,38 @@ ruby run.rb \
   --limit 250
 ```
 
-Use another output file with:
+You can also change the base directory where pull request runs are stored:
 
 ```bash
 ruby run.rb \
   --user bodrovis \
-  --pr-csv nya_prs.csv
+  --pull-requests-dir "C:\Users\me\nya-results"
 ```
+
+This produces something like:
+
+```text
+C:\Users\me\nya-results\pull_requests_20260912_201845\pull_requests.csv
+```
+
+Each run still gets its own timestamped directory.
 
 ## Logging
 
-NyaPr uses normal log levels instead of spraying random `puts` statements everywhere like an animal. The default level is `info`.
+NyaPr uses normal log levels instead of spraying random `puts` statements everywhere like an animal.
+
+The default level is `info`.
 
 Example:
 
 ```bash
 ruby run.rb \
   --user bodrovis \
-  --owners lokalise,scrapingbee \
+  --owners org1,org2 \
   --log-level info
 ```
+
+At the `info` level, NyaPr reports the major stages of the run: loading or discovering repositories, filtering contributions, searching for pull requests, and saving results.
 
 For HTTP-level details:
 
@@ -186,7 +245,9 @@ For HTTP-level details:
 ruby run.rb ... --log-level debug
 ```
 
-This shows requests, responses, skipped empty repositories, detected contributions, and other useful diagnostic information. Available levels:
+This also shows requests, responses, skipped empty repositories, detected contributions, and other useful diagnostic information.
+
+Available levels:
 
 ```text
 debug
@@ -201,14 +262,14 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
 ## CLI options
 
 ```text
--u, --user USERNAME       GitHub username
--o, --owners LIST         Additional users or organizations, comma-separated
-    --csv FILE            Repository cache CSV
-    --pr-csv FILE         Pull request output CSV
--l, --limit N             Maximum number of pull requests to collect
--r, --refresh             Refresh repositories from GitHub
-    --skip-archived       Ignore archived repositories
-    --log-level LEVEL     Logging level
+-u, --user USERNAME              GitHub username
+-o, --owners LIST                Additional users or organizations, comma-separated
+    --repositories-csv PATH      Repository cache CSV path
+    --pull-requests-dir PATH     Directory for pull request runs
+-l, --limit N                    Maximum number of pull requests to collect
+-r, --refresh                    Refresh repositories from GitHub
+    --skip-archived              Ignore archived repositories
+    --log-level LEVEL            Logging level
 ```
 
 Example with most options enabled:
@@ -216,9 +277,9 @@ Example with most options enabled:
 ```bash
 ruby run.rb \
   --user bodrovis \
-  --owners lokalise,scrapingbee \
-  --csv repositories.csv \
-  --pr-csv pull_requests.csv \
+  --owners org1,org2 \
+  --repositories-csv "data/repositories.csv" \
+  --pull-requests-dir "data" \
   --limit 250 \
   --skip-archived \
   --refresh \
@@ -243,6 +304,8 @@ Empty Git repositories are simply skipped.
 
 Repositories with pull requests disabled are also skipped when searching for PRs.
 
-## LICENSE
+The prepared repository list is cached, but pull requests are fetched fresh on every run.
+
+## License
 
 (c) [Elijah S. Krukowski](https://bodrovis.tech), MIT license
