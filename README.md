@@ -1,5 +1,8 @@
 # NyaPr ฅ^•ﻌ•^ฅ
 
+![Gem Version](https://img.shields.io/gem/v/nya_pr)
+![CI](https://github.com/bodrovis/nya_pr/actions/workflows/ci.yml/badge.svg)
+
 **NyaPr** is a tiny Ruby tool for people who have too many GitHub repositories, too many organizations, too many pull requests, and absolutely no desire to click through all that manually.
 
 It collects repositories you own or contribute to, finds their open pull requests, and puts everything into one place.
