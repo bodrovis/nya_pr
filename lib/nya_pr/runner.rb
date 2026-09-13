@@ -4,8 +4,10 @@ require 'dotenv'
 
 module NyaPr
   class Runner
-    def initialize(argv = ARGV)
-      @argv = argv
+    attr_reader :options
+
+    def initialize(options)
+      @options = options
     end
 
     def run
@@ -25,10 +27,6 @@ module NyaPr
         repositories_path: options[:repositories_csv],
         pull_requests_dir: options[:pull_requests_dir]
       )
-    end
-
-    def options
-      @options ||= Cli::Parser.new(@argv).parse
     end
 
     def configure_logger
@@ -87,15 +85,13 @@ module NyaPr
     end
 
     def token
-      ENV.fetch('GITHUB_TOKEN') do
-        raise NyaPr::Error, 'GITHUB_TOKEN is not set'
+      options[:token] || ENV.fetch('GITHUB_TOKEN') do
+        raise NyaPr::Error, 'GitHub token is required (--token or GITHUB_TOKEN)'
       end
     end
 
     def username
-      options.fetch(:username) do
-        raise NyaPr::Error, 'GitHub username is required'
-      end
+      options[:username]
     end
 
     def owners

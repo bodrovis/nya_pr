@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe NyaPr::Runner do
+RSpec.describe NyaPr do
   let(:token) { 'test-token' }
 
   before do
@@ -22,10 +22,11 @@ RSpec.describe NyaPr::Runner do
         '--owners', 'nya-org',
         '--repositories-csv', repositories_csv,
         '--pull-requests-dir', pull_requests_dir,
-        '--skip-archived'
+        '--skip-archived',
+        '--no-progress'
       ]
 
-      described_class.new(args).run
+      described_class.run(args)
 
       expect(File).to exist(repositories_csv)
 
@@ -86,10 +87,11 @@ RSpec.describe NyaPr::Runner do
         '--owners', 'nya-org',
         '--repositories-csv', repositories_csv,
         '--pull-requests-dir', pull_requests_dir,
-        '--log-level', 'fatal'
+        '--log-level', 'fatal',
+        '--no-progress'
       ]
 
-      described_class.new(args).run
+      described_class.run(args)
 
       expect(
         a_request(:get, %r{api\.github\.com/user/repos})
@@ -138,10 +140,11 @@ RSpec.describe NyaPr::Runner do
         '--pull-requests-dir', pull_requests_dir,
         '--refresh',
         '--skip-archived',
-        '--log-level', 'fatal'
+        '--log-level', 'fatal',
+        '--no-progress'
       ]
 
-      described_class.new(args).run
+      described_class.run(args)
 
       expect(
         a_request(

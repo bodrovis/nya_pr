@@ -1,7 +1,7 @@
+#!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative 'lib/nya_pr'
-
+require 'nya_pr'
 
 begin
   NyaPr.run

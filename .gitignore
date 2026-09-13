@@ -3,3 +3,4 @@ repositories.csv
 Gemfile.lock
 pull_requests.csv
 data/
+*.gem

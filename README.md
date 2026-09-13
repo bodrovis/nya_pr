@@ -264,12 +264,15 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
 ```text
 -u, --user USERNAME              GitHub username
 -o, --owners LIST                Additional users or organizations, comma-separated
+    --token TOKEN                GitHub token (GITHUB_TOKEN env variable is recommended)
     --repositories-csv PATH      Repository cache CSV path
     --pull-requests-dir PATH     Directory for pull request runs
 -l, --limit N                    Maximum number of pull requests to collect
 -r, --refresh                    Refresh repositories from GitHub
     --skip-archived              Ignore archived repositories
+    --[no-]progress              Show or hide progress bars
     --log-level LEVEL            Logging level
+-v, --version                    Show NyaPr version
 ```
 
 Example with most options enabled:

@@ -3,6 +3,7 @@
 require 'zeitwerk'
 require 'logger'
 require 'csv'
+require 'dry/cli'
 
 loader = Zeitwerk::Loader.for_gem
 loader.setup
@@ -17,7 +18,7 @@ module NyaPr
     end
 
     def run(argv = ARGV)
-      Runner.new(argv).run
+      Dry::CLI.new(Cli::Command).call(arguments: argv)
     end
   end
 end
