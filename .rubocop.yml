@@ -1,5 +1,6 @@
 plugins:
  - rubocop-performance
+ - rubocop-rspec
 
 AllCops:
   TargetRubyVersion: 4.0
@@ -12,6 +13,7 @@ Metrics/BlockLength:
   Max: 36
   Exclude:
     - "*.gemspec"
+    - spec/**/*.rb
 
 Metrics/BlockNesting:
   Max: 2
@@ -27,6 +29,12 @@ Layout/DotPosition:
 
 Layout/LineLength:
   Max: 120
+
+RSpec/MultipleExpectations:
+  Max: 30
+
+RSpec/ExampleLength:
+  Max: 100
 
 Style/Documentation:
   Enabled: false

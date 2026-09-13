@@ -6,21 +6,35 @@ module NyaPr
       include NyaPr::Request
 
       MAX_PULL_REQUESTS = 100
+      MAX_PER_PAGE = 100
 
-      attr_reader :client, :repositories, :limit
+      attr_reader :client,
+                  :repositories,
+                  :limit,
+                  :progress_enabled
 
-      def initialize(client, repositories, limit: MAX_PULL_REQUESTS)
+      def initialize(
+        client,
+        repositories,
+        limit: MAX_PULL_REQUESTS,
+        progress_enabled: true
+      )
         @client = client
         @repositories = repositories
         @limit = limit
+        @progress_enabled = progress_enabled
       end
 
       def find
         NyaPr.logger.info(
-          "Searching for up to #{limit} open pull requests in #{repositories.size} repositories"
+          "Searching for up to #{limit} open pull requests " \
+          "in #{repositories.size} repositories"
         )
 
-        pull_requests = collect_pull_requests
+        progress_bar = build_progress
+        pull_requests = collect_pull_requests(progress_bar)
+
+        progress_bar.finish
 
         NyaPr.logger.info(
           "Finished searching for pull requests: found #{pull_requests.size}"
@@ -31,45 +45,76 @@ module NyaPr
 
       private
 
-      def collect_pull_requests
-        repositories.each_with_object([]) do |repository, pull_requests|
-          break pull_requests if pull_requests.size >= limit
+      def collect_pull_requests(progress_bar)
+        pull_requests = []
 
-          pull_requests.concat(
-            pull_requests_for(repository, limit - pull_requests.size)
-          )
+        repositories.each do |repository|
+          break if pull_requests.size >= limit
+
+          begin
+            next unless repository.fetch('has_pull_requests', true)
+
+            remaining = limit - pull_requests.size
+
+            pull_requests.concat(
+              pull_requests_for(repository, remaining)
+            )
+          ensure
+            progress_bar.advance
+          end
         end
+
+        pull_requests
       end
 
       def pull_requests_for(repository, remaining)
-        return [] unless pull_requests_enabled?(repository)
-
-        name = repository.fetch('full_name')
-
-        NyaPr.logger.debug("Searching for pull requests in #{name}")
-
-        get(
-          "/repos/#{name}/pulls",
-          state: 'open',
-          sort: 'updated',
-          direction: 'desc',
-          per_page: remaining
-        ).map do |pull_request|
-          normalize(pull_request, repository)
-        end
-      end
-
-      def pull_requests_enabled?(repository)
-        return true if repository.fetch('has_pull_requests', true)
-
         NyaPr.logger.debug(
-          "Skipping #{repository.fetch('full_name')}: pull requests are disabled"
+          "Checking pull requests in #{repository.fetch('full_name')}"
         )
 
-        false
+        pull_requests = []
+        page = 1
+
+        while pull_requests.size < remaining
+          per_page = [
+            remaining - pull_requests.size,
+            MAX_PER_PAGE
+          ].min
+
+          batch = get(
+            "/repos/#{repository.fetch('full_name')}/pulls",
+            state: 'open',
+            sort: 'updated',
+            direction: 'desc',
+            per_page: per_page,
+            page: page
+          )
+
+          break if batch.empty?
+
+          pull_requests.concat(
+            batch.map do |pull_request|
+              normalize(repository, pull_request)
+            end
+          )
+
+          break if batch.size < per_page
+
+          page += 1
+        end
+
+        pull_requests
       end
 
-      def normalize(pull_request, repository)
+      def build_progress
+        Progress.new(
+          '🐾 Checking pull requests',
+          total: repositories.size,
+          enabled: progress_enabled && $stderr.tty?
+        )
+      end
+
+      def normalize(repository, pull_request)
         {
           'repository' => repository.fetch('full_name'),
           'number' => pull_request.fetch('number'),

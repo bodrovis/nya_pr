@@ -21,7 +21,7 @@ module NyaPr
       def available?
         return false unless File.file?(path)
 
-        !CSV.open(path, headers: true).first.nil?
+        CSV.open(path, headers: true) { |csv| !csv.first.nil? }
       end
 
       def read

@@ -46,7 +46,8 @@ module NyaPr
         owners,
         repository_store,
         refresh: options[:refresh],
-        skip_archived: options[:skip_archived]
+        skip_archived: options[:skip_archived],
+        progress: options[:progress]
       )
     end
 
@@ -63,7 +64,8 @@ module NyaPr
         new(
           client,
           target_repositories,
-          limit: options[:limit]
+          limit: options[:limit],
+          progress_enabled: options[:progress]
         ).
         find
     end

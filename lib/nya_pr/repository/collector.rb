@@ -57,7 +57,7 @@ module NyaPr
           repository_owner(repository).casecmp?(username)
         end
 
-        own + Filter.new(client, username).contributed(external)
+        own + Filter.new(client, username, progress_enabled: options[:progress]).contributed(external)
       end
 
       def reject_archived(repositories)

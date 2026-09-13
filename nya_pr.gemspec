@@ -36,8 +36,7 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     'rubygems_mfa_required' => 'true',
     'bug_tracker_uri' => 'https://github.com/bodrovis/nya_pr/issues',
-    'changelog_uri' => '',
-    'documentation_uri' => '',
+    'documentation_uri' => 'https://github.com/bodrovis/nya_pr/blob/master/README.md',
     'homepage_uri' => spec.homepage
   }
 end

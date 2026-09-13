@@ -37,7 +37,8 @@ module NyaPr
           refresh: false,
           skip_archived: false,
           log_level: Logger::INFO,
-          limit: PullRequest::Finder::MAX_PULL_REQUESTS
+          limit: PullRequest::Finder::MAX_PULL_REQUESTS,
+          progress: true
         }
       end
 
@@ -52,7 +53,17 @@ module NyaPr
           limit_option(parser, options)
           refresh_option(parser, options)
           skip_archived_option(parser, options)
+          progress_option(parser, options)
           log_level_option(parser, options)
+        end
+      end
+
+      def progress_option(parser, options)
+        parser.on(
+          '--[no-]progress',
+          'Show progress bars'
+        ) do |value|
+          options[:progress] = value
         end
       end
 
@@ -120,7 +131,7 @@ module NyaPr
           LOG_LEVELS.keys,
           "Log level: #{LOG_LEVELS.keys.join(', ')}"
         ) do |value|
-          options[:log_level] = value
+          options[:log_level] = LOG_LEVELS.fetch(value)
         end
       end
 

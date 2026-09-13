@@ -7,12 +7,13 @@ module NyaPr
 
       DEFAULT_WORKERS = 10
 
-      attr_reader :client, :username, :workers
+      attr_reader :client, :username, :workers, :progress_enabled
 
-      def initialize(client, username, workers: DEFAULT_WORKERS)
+      def initialize(client, username, workers: DEFAULT_WORKERS, progress_enabled: true)
         @client = client
         @username = username
         @workers = workers
+        @progress_enabled = progress_enabled
       end
 
       def contributed(repositories)
@@ -21,16 +22,26 @@ module NyaPr
           "using #{workers} workers"
         )
 
+        NyaPr.logger.debug(
+          "Progress enabled=#{progress_enabled}, tty=#{$stderr.tty?}, total=#{repositories.size}"
+        )
+        progress_bar = Progress.new(
+          '🐈 Checking repositories',
+          total: repositories.size,
+          enabled: progress_enabled && $stderr.tty?
+        )
+
         queue = build_queue(repositories)
         result = Array.new(repositories.size)
 
         threads = Array.new(workers) do
           Thread.new do
-            process_queue(queue, result)
+            process_queue(queue, result, progress_bar)
           end
         end
 
         threads.each(&:value)
+        progress_bar.finish
 
         result.compact.tap do |filtered|
           NyaPr.logger.info(
@@ -49,17 +60,19 @@ module NyaPr
         end
       end
 
-      def process_queue(queue, result)
+      def process_queue(queue, result, progress_bar)
         loop do
           index, repository = queue.pop(true)
 
-          next unless contributed_to?(repository)
+          if contributed_to?(repository)
+            result[index] = repository
 
-          result[index] = repository
+            NyaPr.logger.debug(
+              "Found contributions in #{repository.fetch('full_name')}"
+            )
+          end
 
-          NyaPr.logger.debug(
-            "Found contributions in #{repository.fetch('full_name')}"
-          )
+          progress_bar.advance
         rescue ThreadError
           break
         end
