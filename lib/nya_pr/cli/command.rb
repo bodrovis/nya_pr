@@ -3,14 +3,6 @@
 module NyaPr
   module Cli
     class Command < Dry::CLI::Command
-      LOG_LEVELS = {
-        'debug' => Logger::DEBUG,
-        'info' => Logger::INFO,
-        'warn' => Logger::WARN,
-        'error' => Logger::ERROR,
-        'fatal' => Logger::FATAL
-      }.freeze
-
       desc 'Collect open GitHub pull requests'
 
       option :username,
@@ -34,7 +26,7 @@ module NyaPr
 
       option :limit,
              aliases: ['-l'],
-             default: PullRequest::Finder::MAX_PULL_REQUESTS,
+             default: PullRequest::Config::DEFAULT_LIMIT,
              desc: 'Maximum number of pull requests'
 
       option :refresh,
@@ -48,13 +40,18 @@ module NyaPr
              default: false,
              desc: 'Skip archived repositories'
 
+      option :skip_drafts,
+             type: :boolean,
+             default: false,
+             desc: 'Ignore draft pull requests'
+
       option :progress,
              type: :boolean,
              default: true,
              desc: 'Show progress bars'
 
       option :log_level,
-             values: LOG_LEVELS.keys,
+             values: Config::LOG_LEVELS.keys,
              default: 'info',
              desc: 'Log level'
 
@@ -69,41 +66,7 @@ module NyaPr
           return
         end
 
-        normalize_options!(options)
-        validate_username!(options)
-
-        Runner.new(options).run
-      end
-
-      private
-
-      def normalize_options!(options)
-        options[:owners] = normalize_owners(options[:owners])
-        options[:limit] = normalize_limit(options[:limit])
-        options[:log_level] = LOG_LEVELS.fetch(options[:log_level])
-      end
-
-      def normalize_owners(owners)
-        Array(owners).
-          flat_map { |owner| owner.split(',') }.
-          map(&:strip).
-          reject(&:empty?)
-      end
-
-      def normalize_limit(value)
-        limit = Integer(value)
-
-        return limit if limit.positive?
-
-        raise NyaPr::Error, 'limit must be greater than 0'
-      rescue ArgumentError, TypeError
-        raise NyaPr::Error, 'limit must be a positive integer'
-      end
-
-      def validate_username!(options)
-        return unless options[:username].to_s.empty?
-
-        raise NyaPr::Error, 'GitHub username is required'
+        Runner.new(Config.from_options(options)).run
       end
     end
   end

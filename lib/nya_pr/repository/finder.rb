@@ -5,16 +5,14 @@ module NyaPr
     class Finder
       include NyaPr::Request
 
-      attr_reader :client, :username
+      attr_reader :client, :config
 
-      def initialize(client, username)
+      def initialize(client, config)
         @client = client
-        @username = username
+        @config = config
       end
 
-      def repositories_for(owners)
-        owners = Array(owners)
-
+      def repositories_for
         NyaPr.logger.info(
           "Starting repository collection for #{owners.size} owners"
         )
@@ -31,6 +29,14 @@ module NyaPr
       end
 
       private
+
+      def owners
+        config.owners
+      end
+
+      def username
+        config.username
+      end
 
       def collect_repositories_for(owner)
         NyaPr.logger.info("Collecting repositories for #{owner}")

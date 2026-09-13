@@ -301,6 +301,7 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
 -l, --limit N                    Maximum number of pull requests to collect
 -r, --refresh                    Refresh repositories from GitHub
     --skip-archived              Ignore archived repositories
+    --skip-drafts                Ignore draft pull requests
     --[no-]progress              Show or hide progress bars
     --log-level LEVEL            Logging level
 -v, --version                    Show NyaPr version

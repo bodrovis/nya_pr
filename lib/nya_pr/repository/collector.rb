@@ -3,14 +3,12 @@
 module NyaPr
   module Repository
     class Collector
-      attr_reader :client, :username, :owners, :store, :options
+      attr_reader :client, :store, :config
 
-      def initialize(client, username, owners, store, **options)
+      def initialize(client, store, config)
         @client = client
-        @username = username
-        @owners = owners
         @store = store
-        @options = options
+        @config = config
       end
 
       def collect
@@ -37,10 +35,12 @@ module NyaPr
         )
 
         repositories = Finder.
-                       new(client, username).
-                       repositories_for(owners)
+                       new(client, config).
+                       repositories_for
 
-        repositories = filter_contributed(reject_archived(repositories))
+        repositories = filter_contributed(
+          reject_archived(repositories)
+        )
 
         store.write(repositories)
 
@@ -53,14 +53,14 @@ module NyaPr
 
       def filter_contributed(repositories)
         own, external = repositories.partition do |repository|
-          repository_owner(repository).casecmp?(username)
+          repository_owner(repository).casecmp?(config.username)
         end
 
-        own + Filter.new(client, username, progress_enabled: options[:progress]).contributed(external)
+        own + Filter.new(client, config).contributed(external)
       end
 
       def reject_archived(repositories)
-        return repositories unless options[:skip_archived]
+        return repositories unless config.skip_archived
 
         filtered = repositories.reject do |repository|
           repository['archived']
@@ -78,7 +78,7 @@ module NyaPr
       end
 
       def use_cache?
-        store.available? && !options[:refresh]
+        store.available? && !config.refresh
       end
     end
   end

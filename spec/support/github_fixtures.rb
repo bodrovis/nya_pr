@@ -17,17 +17,17 @@ module GitHubFixtures
     }
   end
 
-  def pull_request(number, author)
+  def pull_request(number, author, draft: false)
     {
       'number' => number,
-      'title' => 'Maximum kawaii PR',
+      'title' => "Pull request #{number}",
       'user' => {
         'login' => author
       },
-      'draft' => false,
+      'draft' => draft,
       'created_at' => '2026-09-01T10:00:00Z',
-      'updated_at' => '2026-09-12T10:00:00Z',
-      'html_url' => "https://github.com/example/pull/#{number}"
+      'updated_at' => '2026-09-02T10:00:00Z',
+      'html_url' => "https://github.com/nya-user/example/pull/#{number}"
     }
   end
 end

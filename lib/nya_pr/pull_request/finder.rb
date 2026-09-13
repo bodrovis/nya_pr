@@ -5,29 +5,23 @@ module NyaPr
     class Finder
       include NyaPr::Request
 
-      MAX_PULL_REQUESTS = 100
       MAX_PER_PAGE = 100
 
       attr_reader :client,
                   :repositories,
-                  :limit,
-                  :progress_enabled
+                  :config,
+                  :filter
 
-      def initialize(
-        client,
-        repositories,
-        limit: MAX_PULL_REQUESTS,
-        progress_enabled: true
-      )
+      def initialize(client, repositories, config, filter: nil)
         @client = client
         @repositories = repositories
-        @limit = limit
-        @progress_enabled = progress_enabled
+        @config = config
+        @filter = filter || Filter.new(config)
       end
 
       def find
         NyaPr.logger.info(
-          "Searching for up to #{limit} open pull requests " \
+          "Searching for up to #{config.limit} open pull requests " \
           "in #{repositories.size} repositories"
         )
 
@@ -49,22 +43,32 @@ module NyaPr
         pull_requests = []
 
         repositories.each do |repository|
-          break if pull_requests.size >= limit
+          break if pull_requests.size >= config.limit
 
-          begin
-            next unless repository.fetch('has_pull_requests', true)
-
-            remaining = limit - pull_requests.size
-
-            pull_requests.concat(
-              pull_requests_for(repository, remaining)
-            )
-          ensure
-            progress_bar.advance
-          end
+          process_repository(
+            repository,
+            pull_requests,
+            progress_bar
+          )
         end
 
         pull_requests
+      end
+
+      def process_repository(repository, pull_requests, progress_bar)
+        return unless pull_requests_enabled?(repository)
+
+        remaining = config.limit - pull_requests.size
+
+        pull_requests.concat(
+          pull_requests_for(repository, remaining)
+        )
+      ensure
+        progress_bar.advance
+      end
+
+      def pull_requests_enabled?(repository)
+        repository.fetch('has_pull_requests', true)
       end
 
       def pull_requests_for(repository, remaining)
@@ -73,31 +77,50 @@ module NyaPr
         )
 
         pull_requests = []
-        page = 1
+        per_page = [remaining, MAX_PER_PAGE].min
 
-        loop do
-          per_page = page_size(remaining, pull_requests.size)
-          batch = get_batch(repository, per_page, page)
-
-          break if batch.empty?
-
-          pull_requests.concat(
-            batch.map do |pull_request|
-              normalize(repository, pull_request)
-            end
+        each_batch(repository, per_page) do |batch|
+          append_matches(
+            pull_requests,
+            repository,
+            batch,
+            remaining
           )
 
-          break if batch.size < per_page
           break if pull_requests.size >= remaining
-
-          page += 1
         end
 
         pull_requests
       end
 
-      def page_size(remaining, collected)
-        [remaining - collected, MAX_PER_PAGE].min
+      def each_batch(repository, per_page)
+        page = 1
+
+        loop do
+          batch = get_batch(repository, per_page, page)
+
+          break if batch.empty?
+
+          yield batch
+
+          break if batch.size < per_page
+
+          page += 1
+        end
+      end
+
+      def append_matches(pull_requests, repository, batch, limit)
+        needed = limit - pull_requests.size
+
+        pull_requests.concat(
+          filter_batch(repository, batch).first(needed)
+        )
+      end
+
+      def filter_batch(repository, batch)
+        batch.
+          map { |pull_request| normalize(repository, pull_request) }.
+          grep(filter)
       end
 
       def get_batch(repository, per_page, page)
@@ -115,7 +138,7 @@ module NyaPr
         Progress.new(
           '🐾 Checking pull requests',
           total: repositories.size,
-          enabled: progress_enabled && $stderr.tty?
+          enabled: config.progress_enabled && $stderr.tty?
         )
       end
 

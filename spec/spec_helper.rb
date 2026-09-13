@@ -18,4 +18,5 @@ RSpec.configure do |config|
   config.include GitHubFixtures
   config.include GitHubStubs
   config.include RepositoryHelpers
+  config.include ConfigHelpers
 end

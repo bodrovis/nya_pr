@@ -4,10 +4,10 @@ require 'dotenv'
 
 module NyaPr
   class Runner
-    attr_reader :options
+    attr_reader :config
 
-    def initialize(options)
-      @options = options
+    def initialize(config)
+      @config = config
     end
 
     def run
@@ -15,7 +15,6 @@ module NyaPr
       configure_logger
 
       pull_requests = find_pull_requests
-
       pull_request_printer.print(pull_requests)
       save_pull_requests(pull_requests)
     end
@@ -24,13 +23,13 @@ module NyaPr
 
     def paths
       @paths ||= Paths.new(
-        repositories_path: options[:repositories_csv],
-        pull_requests_dir: options[:pull_requests_dir]
+        repositories_path: config.repositories_csv,
+        pull_requests_dir: config.pull_requests_dir
       )
     end
 
     def configure_logger
-      NyaPr.logger.level = options[:log_level]
+      NyaPr.logger.level = config.log_level
     end
 
     def target_repositories
@@ -40,13 +39,13 @@ module NyaPr
     def repository_collector
       @repository_collector ||= Repository::Collector.new(
         client,
-        username,
-        owners,
         repository_store,
-        refresh: options[:refresh],
-        skip_archived: options[:skip_archived],
-        progress: options[:progress]
+        repository_config
       )
+    end
+
+    def repository_config
+      @repository_config ||= Repository::Config.from_app(config)
     end
 
     def save_pull_requests(pull_requests)
@@ -62,10 +61,13 @@ module NyaPr
         new(
           client,
           target_repositories,
-          limit: options[:limit],
-          progress_enabled: options[:progress]
+          pull_request_config
         ).
         find
+    end
+
+    def pull_request_config
+      @pull_request_config ||= PullRequest::Config.from_app(config)
     end
 
     def repository_store
@@ -85,17 +87,10 @@ module NyaPr
     end
 
     def token
-      options[:token] || ENV.fetch('GITHUB_TOKEN') do
-        raise NyaPr::Error, 'GitHub token is required (--token or GITHUB_TOKEN)'
+      config.token || ENV.fetch('GITHUB_TOKEN') do
+        raise NyaPr::Error,
+              'GitHub token is required (--token or GITHUB_TOKEN)'
       end
-    end
-
-    def username
-      options[:username]
-    end
-
-    def owners
-      ([username] + options[:owners]).uniq
     end
   end
 end

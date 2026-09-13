@@ -5,15 +5,11 @@ module NyaPr
     class Filter
       include NyaPr::Request
 
-      DEFAULT_WORKERS = 10
+      attr_reader :client, :config
 
-      attr_reader :client, :username, :workers, :progress_enabled
-
-      def initialize(client, username, workers: DEFAULT_WORKERS, progress_enabled: true)
+      def initialize(client, config)
         @client = client
-        @username = username
-        @workers = workers
-        @progress_enabled = progress_enabled
+        @config = config
       end
 
       def contributed(repositories)
@@ -29,6 +25,18 @@ module NyaPr
       end
 
       private
+
+      def username
+        config.username
+      end
+
+      def workers
+        config.workers
+      end
+
+      def progress_enabled
+        config.progress_enabled
+      end
 
       def log_start(repositories)
         NyaPr.logger.info(
@@ -81,18 +89,21 @@ module NyaPr
         loop do
           index, repository = queue.pop(true)
 
-          if contributed_to?(repository)
-            result[index] = repository
-
-            NyaPr.logger.debug(
-              "Found contributions in #{repository.fetch('full_name')}"
-            )
-          end
-
+          process_repository(repository, index, result)
           progress_bar.advance
         rescue ThreadError
           break
         end
+      end
+
+      def process_repository(repository, index, result)
+        return unless contributed_to?(repository)
+
+        result[index] = repository
+
+        NyaPr.logger.debug(
+          "Found contributions in #{repository.fetch('full_name')}"
+        )
       end
 
       def contributed_to?(repository)
