@@ -9,6 +9,34 @@ It collects repositories you own or contribute to, finds their open pull request
 
 For maximum kawaii.
 
+## Quick start
+
+Install the gem:
+
+```bash
+gem install nya_pr
+```
+
+Set your GitHub token:
+
+```bash
+export GITHUB_TOKEN=your_token
+```
+
+Run NyaPr:
+
+```bash
+nya-pr --user your-github-username
+```
+
+To include additional users or organizations:
+
+```bash
+nya-pr --user your-github-username --owners org-one,org-two
+```
+
+NyaPr will collect relevant repositories, find open pull requests, print them to the terminal, and save the results under `data/`.
+
 ## Why NyaPr?
 
 GitHub is perfectly happy to show you:
