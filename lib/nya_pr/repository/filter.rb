@@ -17,40 +17,57 @@ module NyaPr
       end
 
       def contributed(repositories)
+        log_start(repositories)
+
+        progress_bar = build_progress(repositories)
+        result = process_repositories(repositories, progress_bar)
+
+        progress_bar.finish
+
+        log_result(result)
+        result
+      end
+
+      private
+
+      def log_start(repositories)
         NyaPr.logger.info(
           "Checking contributions in #{repositories.size} repositories " \
           "using #{workers} workers"
         )
+      end
 
-        NyaPr.logger.debug(
-          "Progress enabled=#{progress_enabled}, tty=#{$stderr.tty?}, total=#{repositories.size}"
-        )
-        progress_bar = Progress.new(
+      def build_progress(repositories)
+        Progress.new(
           '🐈 Checking repositories',
           total: repositories.size,
           enabled: progress_enabled && $stderr.tty?
         )
+      end
 
+      def process_repositories(repositories, progress_bar)
         queue = build_queue(repositories)
         result = Array.new(repositories.size)
 
-        threads = Array.new(workers) do
+        build_workers(queue, result, progress_bar).
+          each(&:value)
+
+        result.compact
+      end
+
+      def build_workers(queue, result, progress_bar)
+        Array.new(workers) do
           Thread.new do
             process_queue(queue, result, progress_bar)
           end
         end
-
-        threads.each(&:value)
-        progress_bar.finish
-
-        result.compact.tap do |filtered|
-          NyaPr.logger.info(
-            "Finished contribution check: #{filtered.size} repositories matched"
-          )
-        end
       end
 
-      private
+      def log_result(result)
+        NyaPr.logger.info(
+          "Finished contribution check: #{result.size} repositories matched"
+        )
+      end
 
       def build_queue(repositories)
         Queue.new.tap do |queue|

@@ -40,8 +40,7 @@ module NyaPr
                        new(client, username).
                        repositories_for(owners)
 
-        repositories = reject_archived(repositories)
-        repositories = filter_contributed(repositories)
+        repositories = filter_contributed(reject_archived(repositories))
 
         store.write(repositories)
 

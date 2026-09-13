@@ -75,20 +75,9 @@ module NyaPr
         pull_requests = []
         page = 1
 
-        while pull_requests.size < remaining
-          per_page = [
-            remaining - pull_requests.size,
-            MAX_PER_PAGE
-          ].min
-
-          batch = get(
-            "/repos/#{repository.fetch('full_name')}/pulls",
-            state: 'open',
-            sort: 'updated',
-            direction: 'desc',
-            per_page: per_page,
-            page: page
-          )
+        loop do
+          per_page = page_size(remaining, pull_requests.size)
+          batch = get_batch(repository, per_page, page)
 
           break if batch.empty?
 
@@ -99,11 +88,27 @@ module NyaPr
           )
 
           break if batch.size < per_page
+          break if pull_requests.size >= remaining
 
           page += 1
         end
 
         pull_requests
+      end
+
+      def page_size(remaining, collected)
+        [remaining - collected, MAX_PER_PAGE].min
+      end
+
+      def get_batch(repository, per_page, page)
+        get(
+          "/repos/#{repository.fetch('full_name')}/pulls",
+          state: 'open',
+          sort: 'updated',
+          direction: 'desc',
+          per_page: per_page,
+          page: page
+        )
       end
 
       def build_progress

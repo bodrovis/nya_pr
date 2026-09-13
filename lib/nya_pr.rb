@@ -10,15 +10,15 @@ loader.setup
 
 module NyaPr
   class << self
+    def run(argv = ARGV)
+      Dry::CLI.new(Cli::Command).call(arguments: argv)
+    end
+
     def logger
       @logger ||= Logger.new($stderr).tap do |logger|
         logger.level = Logger::INFO
         logger.progname = 'nya-pr'
       end
-    end
-
-    def run(argv = ARGV)
-      Dry::CLI.new(Cli::Command).call(arguments: argv)
     end
   end
 end

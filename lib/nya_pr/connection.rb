@@ -20,7 +20,7 @@ module NyaPr
         url: API_URL,
         headers: {
           accept: 'application/vnd.github+json',
-          user_agent: 'nya_pr',
+          user_agent: "nya_pr gem/#{NyaPr::VERSION}",
           authorization: "Bearer #{client.token}",
           'X-GitHub-Api-Version': client.options.fetch(:api_version, API_VERSION)
         },
