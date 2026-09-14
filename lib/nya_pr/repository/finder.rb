@@ -3,7 +3,7 @@
 module NyaPr
   module Repository
     class Finder
-      include NyaPr::Request
+      include NyaPr::Github::Request
 
       attr_reader :client, :config
 

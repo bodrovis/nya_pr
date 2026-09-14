@@ -3,18 +3,9 @@
 RSpec.describe NyaPr::Repository::Finder do
   subject(:finder) { described_class.new(client, config) }
 
-  let(:client) { NyaPr::Client.new('test-token') }
+  let(:client) { github_client }
 
-  let(:config) do
-    NyaPr::Repository::Config.new(
-      username: 'nya-user',
-      owners: owners,
-      refresh: false,
-      skip_archived: false,
-      progress_enabled: false,
-      workers: 1
-    )
-  end
+  let(:config) { repository_config(owners: owners) }
 
   context 'when collecting repositories owned by the current user' do
     let(:owners) { ['nya-user'] }

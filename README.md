@@ -304,7 +304,9 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
     --skip-drafts                Ignore draft pull requests
     --[no-]progress              Show or hide progress bars
     --log-level LEVEL            Logging level
+-w, --workers                    Number of repository scan workers
 -v, --version                    Show NyaPr version
+-c, --config                     Configuration file path
 ```
 
 Example with most options enabled:
@@ -320,6 +322,47 @@ ruby run.rb \
   --refresh \
   --log-level debug
 ```
+
+## YAML configuration
+
+NyaPr can load options from a YAML configuration file. By default, it looks for `.nya-pr.yml` in the current directory.
+
+```yaml
+username: your-github-username
+
+owners:
+  - organization-one
+  - organization-two
+
+limit: 100
+skip_archived: true
+skip_drafts: true
+progress: true
+log_level: info
+```
+
+You can also provide a custom configuration file:
+
+```bash
+nya-pr --config path/to/config.yml
+```
+
+Command-line options override values from the YAML file. Any options not defined in either place use NyaPr's built-in defaults.
+
+For example:
+
+```yaml
+limit: 200
+progress: true
+```
+
+```bash
+nya-pr --limit 50 --no-progress
+```
+
+In this case, NyaPr uses `limit: 50` and disables progress output.
+
+Unknown configuration options and invalid values are reported as errors.
 
 ## How repository discovery works
 

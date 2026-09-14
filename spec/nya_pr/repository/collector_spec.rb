@@ -9,19 +9,10 @@ RSpec.describe NyaPr::Repository::Collector do
     )
   end
 
-  let(:client) { NyaPr::Client.new('test-token') }
+  let(:client) { github_client }
   let(:store) { instance_double(NyaPr::Repository::CsvStore) }
 
-  let(:config) do
-    NyaPr::Repository::Config.new(
-      username: 'nya-user',
-      owners: ['nya-user'],
-      refresh: false,
-      skip_archived: false,
-      progress_enabled: false,
-      workers: 1
-    )
-  end
+  let(:config) { repository_config }
 
   before do
     allow(store).to receive(:path).and_return('repositories.csv')
@@ -122,13 +113,8 @@ RSpec.describe NyaPr::Repository::Collector do
 
   context 'when archived repositories are skipped' do
     let(:config) do
-      NyaPr::Repository::Config.new(
-        username: 'nya-user',
-        owners: ['nya-user'],
-        refresh: false,
-        skip_archived: true,
-        progress_enabled: false,
-        workers: 1
+      repository_config(
+        skip_archived: true
       )
     end
 

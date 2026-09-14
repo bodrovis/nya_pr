@@ -3,7 +3,7 @@
 module NyaPr
   module PullRequest
     class Finder
-      include NyaPr::Request
+      include NyaPr::Github::Request
 
       MAX_PER_PAGE = 100
 

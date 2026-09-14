@@ -5,7 +5,8 @@ module NyaPr
     class Config < Data.define(
       :limit,
       :skip_drafts,
-      :progress_enabled
+      :progress_enabled,
+      :pull_requests_dir
     )
       DEFAULT_LIMIT = 100
 
@@ -13,7 +14,8 @@ module NyaPr
         new(
           limit: config.limit,
           skip_drafts: config.skip_drafts,
-          progress_enabled: config.progress
+          progress_enabled: config.progress,
+          pull_requests_dir: config.pull_requests_dir
         )
       end
     end

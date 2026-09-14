@@ -3,18 +3,9 @@
 RSpec.describe NyaPr::Repository::Filter do
   subject(:filter) { described_class.new(client, config) }
 
-  let(:client) { NyaPr::Client.new('test-token') }
+  let(:client) { github_client }
 
-  let(:config) do
-    NyaPr::Repository::Config.new(
-      username: 'nya-user',
-      owners: ['nya-user'],
-      refresh: false,
-      skip_archived: false,
-      progress_enabled: false,
-      workers: 2
-    )
-  end
+  let(:config) { repository_config(workers: 2) }
 
   let(:repositories) do
     [

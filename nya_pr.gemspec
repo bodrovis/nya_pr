@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'dotenv', '~> 3.2'
   spec.add_dependency 'dry-cli', '~> 1.4'
   spec.add_dependency 'faraday', '~> 2.14'
+  spec.add_dependency 'faraday-gzip', '~> 3'
   spec.add_dependency 'oj', '~> 3.10'
   spec.add_dependency 'zeitwerk', '~> 2.6'
 

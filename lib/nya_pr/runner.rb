@@ -15,18 +15,12 @@ module NyaPr
       configure_logger
 
       pull_requests = find_pull_requests
+
       pull_request_printer.print(pull_requests)
       save_pull_requests(pull_requests)
     end
 
     private
-
-    def paths
-      @paths ||= Paths.new(
-        repositories_path: config.repositories_csv,
-        pull_requests_dir: config.pull_requests_dir
-      )
-    end
 
     def configure_logger
       NyaPr.logger.level = config.log_level
@@ -36,23 +30,43 @@ module NyaPr
       repository_collector.collect
     end
 
+    def repository_config
+      @repository_config ||= Repository::Config.from_app(config)
+    end
+
+    def pull_request_config
+      @pull_request_config ||= PullRequest::Config.from_app(config)
+    end
+
+    def repository_paths
+      @repository_paths ||= Repository::Paths.new(
+        repository_config
+      )
+    end
+
+    def pull_request_paths
+      @pull_request_paths ||= PullRequest::Paths.new(
+        pull_request_config
+      )
+    end
+
+    def repository_store
+      @repository_store ||= Repository::CsvStore.new(
+        repository_paths.csv
+      )
+    end
+
+    def pull_request_store
+      @pull_request_store ||= PullRequest::CsvStore.new(
+        pull_request_paths.csv
+      )
+    end
+
     def repository_collector
       @repository_collector ||= Repository::Collector.new(
         client,
         repository_store,
         repository_config
-      )
-    end
-
-    def repository_config
-      @repository_config ||= Repository::Config.from_app(config)
-    end
-
-    def save_pull_requests(pull_requests)
-      pull_request_store.write(pull_requests)
-
-      NyaPr.logger.info(
-        "Saved #{pull_requests.size} pull requests to #{pull_request_store.path}"
       )
     end
 
@@ -66,16 +80,12 @@ module NyaPr
         find
     end
 
-    def pull_request_config
-      @pull_request_config ||= PullRequest::Config.from_app(config)
-    end
+    def save_pull_requests(pull_requests)
+      pull_request_store.write(pull_requests)
 
-    def repository_store
-      @repository_store ||= Repository::CsvStore.new(paths.repositories_csv)
-    end
-
-    def pull_request_store
-      @pull_request_store ||= PullRequest::CsvStore.new(paths.pull_requests_csv)
+      NyaPr.logger.info(
+        "Saved #{pull_requests.size} pull requests to #{pull_request_store.path}"
+      )
     end
 
     def pull_request_printer
@@ -83,7 +93,7 @@ module NyaPr
     end
 
     def client
-      @client ||= Client.new(token)
+      @client ||= Github::Client.new(token)
     end
 
     def token

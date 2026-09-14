@@ -3,7 +3,7 @@
 module NyaPr
   module Repository
     class Filter
-      include NyaPr::Request
+      include NyaPr::Github::Request
 
       attr_reader :client, :config
 
@@ -66,6 +66,8 @@ module NyaPr
       def build_workers(queue, result, progress_bar)
         Array.new(workers) do
           Thread.new do
+            Thread.current.report_on_exception = false
+
             process_queue(queue, result, progress_bar)
           end
         end

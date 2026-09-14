@@ -5,6 +5,10 @@ module NyaPr
     class Command < Dry::CLI::Command
       desc 'Collect open GitHub pull requests'
 
+      option :config,
+             aliases: ['-c'],
+             desc: 'Configuration file path'
+
       option :username,
              aliases: ['-u', '--user'],
              desc: 'GitHub username'
@@ -12,7 +16,6 @@ module NyaPr
       option :owners,
              aliases: ['-o'],
              type: :array,
-             default: [],
              desc: 'Repository owners'
 
       option :token,
@@ -26,47 +29,52 @@ module NyaPr
 
       option :limit,
              aliases: ['-l'],
-             default: PullRequest::Config::DEFAULT_LIMIT,
              desc: 'Maximum number of pull requests'
 
       option :refresh,
              aliases: ['-r'],
              type: :boolean,
-             default: false,
              desc: 'Refresh repositories from GitHub'
 
       option :skip_archived,
              type: :boolean,
-             default: false,
              desc: 'Skip archived repositories'
 
       option :skip_drafts,
              type: :boolean,
-             default: false,
              desc: 'Ignore draft pull requests'
 
       option :progress,
              type: :boolean,
-             default: true,
              desc: 'Show progress bars'
 
       option :log_level,
-             values: Config::LOG_LEVELS.keys,
-             default: 'info',
+             values: Config::Global::LOG_LEVELS.keys,
              desc: 'Log level'
+
+      option :workers,
+             aliases: ['-w'],
+             desc: 'Number of repository scan workers'
 
       option :version,
              aliases: ['-v'],
              type: :flag,
              desc: 'Show version'
 
-      def call(version: false, **options)
+      def call(version: false, config: nil, **options)
         if version
           puts NyaPr::VERSION
           return
         end
 
-        Runner.new(Config.from_options(options)).run
+        file_options = Config::Loader.load(config)
+
+        Runner.new(
+          Config::Global.from_options(
+            options,
+            file_options: file_options
+          )
+        ).run
       end
     end
   end

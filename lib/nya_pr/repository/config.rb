@@ -8,7 +8,8 @@ module NyaPr
       :refresh,
       :skip_archived,
       :progress_enabled,
-      :workers
+      :workers,
+      :repositories_csv
     )
       DEFAULT_WORKERS = 10
 
@@ -19,7 +20,8 @@ module NyaPr
           refresh: config.refresh,
           skip_archived: config.skip_archived,
           progress_enabled: config.progress,
-          workers: DEFAULT_WORKERS
+          workers: config.workers,
+          repositories_csv: config.repositories_csv
         )
       end
     end

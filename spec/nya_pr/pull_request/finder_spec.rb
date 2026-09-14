@@ -9,7 +9,7 @@ RSpec.describe NyaPr::PullRequest::Finder do
     )
   end
 
-  let(:client) { NyaPr::Client.new('test-token') }
+  let(:client) { github_client }
   let(:pulls_url) { 'https://api.github.com/repos/nya-user/example/pulls' }
 
   let(:repositories) do
@@ -23,10 +23,9 @@ RSpec.describe NyaPr::PullRequest::Finder do
 
   context 'when drafts are skipped' do
     let(:config) do
-      NyaPr::PullRequest::Config.new(
+      pull_request_config(
         limit: 2,
-        skip_drafts: true,
-        progress_enabled: false
+        skip_drafts: true
       )
     end
 
@@ -108,10 +107,8 @@ RSpec.describe NyaPr::PullRequest::Finder do
 
   context 'when drafts are allowed' do
     let(:config) do
-      NyaPr::PullRequest::Config.new(
-        limit: 2,
-        skip_drafts: false,
-        progress_enabled: false
+      pull_request_config(
+        limit: 2
       )
     end
 
@@ -159,10 +156,8 @@ RSpec.describe NyaPr::PullRequest::Finder do
     end
 
     let(:config) do
-      NyaPr::PullRequest::Config.new(
-        limit: 2,
-        skip_drafts: false,
-        progress_enabled: false
+      pull_request_config(
+        limit: 2
       )
     end
 

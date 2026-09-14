@@ -12,10 +12,9 @@ RSpec.describe NyaPr::PullRequest::Filter do
 
   context 'when drafts are skipped' do
     let(:config) do
-      NyaPr::PullRequest::Config.new(
+      pull_request_config(
         limit: 100,
-        skip_drafts: true,
-        progress_enabled: false
+        skip_drafts: true
       )
     end
 
@@ -28,10 +27,8 @@ RSpec.describe NyaPr::PullRequest::Filter do
 
   context 'when drafts are allowed' do
     let(:config) do
-      NyaPr::PullRequest::Config.new(
-        limit: 100,
-        skip_drafts: false,
-        progress_enabled: false
+      pull_request_config(
+        limit: 100
       )
     end
 
@@ -44,10 +41,9 @@ RSpec.describe NyaPr::PullRequest::Filter do
 
   describe '#===' do
     let(:config) do
-      NyaPr::PullRequest::Config.new(
+      pull_request_config(
         limit: 100,
-        skip_drafts: true,
-        progress_enabled: false
+        skip_drafts: true
       )
     end
 

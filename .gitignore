@@ -4,3 +4,4 @@ Gemfile.lock
 pull_requests.csv
 data/
 *.gem
+.nya-pr.yml
