@@ -44,6 +44,11 @@ module NyaPr
              type: :boolean,
              desc: 'Ignore draft pull requests'
 
+      option :exclude_repositories,
+             aliases: ['--exclude-repos'],
+             type: :array,
+             desc: 'Repositories to exclude, in owner/name format'
+
       option :progress,
              type: :boolean,
              desc: 'Show progress bars'

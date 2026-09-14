@@ -22,9 +22,13 @@ module NyaPr
       def load_cached
         NyaPr.logger.info("Loading repositories from #{store.path}")
 
-        reject_archived(store.read).tap do |repositories|
+        repositories = store.read
+        repositories = reject_archived(repositories)
+        repositories = reject_excluded(repositories)
+
+        repositories.tap do |result|
           NyaPr.logger.info(
-            "Loaded #{repositories.size} repositories from cache"
+            "Loaded #{result.size} repositories from cache"
           )
         end
       end
@@ -38,9 +42,9 @@ module NyaPr
                        new(client, config).
                        repositories_for
 
-        repositories = filter_contributed(
-          reject_archived(repositories)
-        )
+        repositories = reject_archived(repositories)
+        repositories = reject_excluded(repositories)
+        repositories = filter_contributed(repositories)
 
         store.write(repositories)
 
@@ -68,6 +72,22 @@ module NyaPr
 
         NyaPr.logger.info(
           "Skipped #{repositories.size - filtered.size} archived repositories"
+        )
+
+        filtered
+      end
+
+      def reject_excluded(repositories)
+        return repositories if config.exclude_repositories.empty?
+
+        filtered = repositories.reject do |repository|
+          config.exclude_repositories.include?(
+            repository.fetch('full_name').downcase
+          )
+        end
+
+        NyaPr.logger.info(
+          "Skipped #{repositories.size - filtered.size} excluded repositories"
         )
 
         filtered

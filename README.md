@@ -303,6 +303,7 @@ Logs are written to `stderr`, while actual pull request output goes to `stdout`.
     --skip-archived              Ignore archived repositories
     --skip-drafts                Ignore draft pull requests
     --[no-]progress              Show or hide progress bars
+    --exclude-repos              Repositories to exclude, in owner/name format
     --log-level LEVEL            Logging level
 -w, --workers                    Number of repository scan workers
 -v, --version                    Show NyaPr version

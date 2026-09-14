@@ -112,4 +112,17 @@ RSpec.describe NyaPr::Config::Global do
       'skip_drafts must be true or false'
     )
   end
+
+  it 'normalizes excluded repositories' do
+    config = described_class.from_options(
+      {
+        username: 'nya-user',
+        exclude_repositories: ['User/Foo, Org/Bar', 'user/foo']
+      }
+    )
+
+    expect(config.exclude_repositories).to eq(
+      %w[user/foo org/bar]
+    )
+  end
 end

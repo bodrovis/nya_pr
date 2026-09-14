@@ -145,4 +145,40 @@ RSpec.describe NyaPr::Repository::Collector do
       )
     end
   end
+
+  context 'when repositories are excluded' do
+    let(:config) do
+      repository_config(
+        exclude_repositories: ['nya-org/excluded']
+      )
+    end
+
+    let(:repositories) do
+      [
+        {
+          'full_name' => 'nya-user/kept',
+          'owner' => { 'login' => 'nya-user' }
+        },
+        {
+          'full_name' => 'nya-org/excluded',
+          'owner' => { 'login' => 'nya-org' }
+        }
+      ]
+    end
+
+    before do
+      allow(store).to receive_messages(
+        available?: true,
+        read: repositories
+      )
+    end
+
+    it 'removes excluded repositories from cached results' do
+      expect(collector.collect).to eq(
+        [
+          repositories.first
+        ]
+      )
+    end
+  end
 end

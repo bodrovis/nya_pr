@@ -9,7 +9,8 @@ module TestHelpers
       refresh: false,
       workers: 1,
       skip_archived: false,
-      repositories_csv: nil
+      repositories_csv: nil,
+      exclude_repositories: []
     }
 
     NyaPr::Repository::Config.new(

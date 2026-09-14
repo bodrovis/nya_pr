@@ -9,7 +9,8 @@ module NyaPr
       :skip_archived,
       :progress_enabled,
       :workers,
-      :repositories_csv
+      :repositories_csv,
+      :exclude_repositories
     )
       DEFAULT_WORKERS = 10
 
@@ -21,7 +22,8 @@ module NyaPr
           skip_archived: config.skip_archived,
           progress_enabled: config.progress,
           workers: config.workers,
-          repositories_csv: config.repositories_csv
+          repositories_csv: config.repositories_csv,
+          exclude_repositories: config.exclude_repositories
         )
       end
     end

@@ -12,6 +12,7 @@ module NyaPr
       :refresh,
       :skip_archived,
       :skip_drafts,
+      :exclude_repositories,
       :progress,
       :log_level,
       :workers
@@ -35,7 +36,8 @@ module NyaPr
         skip_drafts: false,
         progress: true,
         log_level: 'info',
-        workers: Repository::Config::DEFAULT_WORKERS
+        workers: Repository::Config::DEFAULT_WORKERS,
+        exclude_repositories: []
       }.freeze
 
       BOOLEAN_KEYS = %i[
@@ -65,6 +67,9 @@ module NyaPr
             limit: normalize_positive_integer(attributes[:limit], :limit),
             workers: normalize_positive_integer(attributes[:workers], :workers),
             log_level: normalize_log_level(attributes[:log_level]),
+            exclude_repositories: normalize_repositories(
+              attributes[:exclude_repositories]
+            ),
             **normalize_booleans(attributes)
           )
 
@@ -77,6 +82,15 @@ module NyaPr
           validate_username!(username)
 
           username
+        end
+
+        def normalize_repositories(repositories)
+          Array(repositories).
+            flat_map { |repository| repository.to_s.split(',') }.
+            map(&:strip).
+            reject(&:empty?).
+            map(&:downcase).
+            uniq
         end
 
         def normalize_booleans(attributes)
