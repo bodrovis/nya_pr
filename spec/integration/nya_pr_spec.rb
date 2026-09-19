@@ -11,7 +11,7 @@ RSpec.describe NyaPr do
   end
 
   it 'collects relevant repositories and writes open pull requests' do
-    Dir.mktmpdir do |dir|
+    in_tmpdir do |dir|
       repositories_csv = File.join(dir, 'repositories.csv')
       pull_requests_dir = File.join(dir, 'pull_requests')
 
@@ -60,7 +60,7 @@ RSpec.describe NyaPr do
   end
 
   it 'uses cached repositories without scanning GitHub again' do
-    Dir.mktmpdir do |dir|
+    in_tmpdir do |dir|
       repositories_csv = File.join(dir, 'repositories.csv')
       pull_requests_dir = File.join(dir, 'pull_requests')
 
@@ -116,7 +116,7 @@ RSpec.describe NyaPr do
   end
 
   it 'refreshes cached repositories when --refresh is used' do
-    Dir.mktmpdir do |dir|
+    in_tmpdir do |dir|
       repositories_csv = File.join(dir, 'repositories.csv')
       pull_requests_dir = File.join(dir, 'pull_requests')
 
@@ -208,6 +208,14 @@ RSpec.describe NyaPr do
           %r{/repos/nya-user/old-cached-repo/pulls}
         )
       ).not_to have_been_made
+    end
+  end
+end
+
+def in_tmpdir
+  Dir.mktmpdir do |dir|
+    Dir.chdir(dir) do
+      yield dir
     end
   end
 end

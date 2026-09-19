@@ -49,12 +49,16 @@ module NyaPr
              type: :array,
              desc: 'Repositories to exclude, in owner/name format'
 
+      option :save_pull_requests,
+             type: :boolean,
+             desc: 'Save pull requests to CSV'
+
       option :progress,
              type: :boolean,
              desc: 'Show progress bars'
 
       option :log_level,
-             values: Config::Global::LOG_LEVELS.keys,
+             values: Config::Builder::LOG_LEVELS.keys,
              desc: 'Log level'
 
       option :workers,
@@ -74,12 +78,14 @@ module NyaPr
 
         file_options = Config::Loader.load(config)
 
-        Runner.new(
-          Config::Global.from_options(
-            options,
-            file_options: file_options
-          )
-        ).run
+        app_config = Config::Builder.build(
+          options,
+          file_options: file_options
+        )
+
+        NyaPr.logger.level = app_config.log_level
+
+        RunnerFactory.build(app_config).run
       end
     end
   end

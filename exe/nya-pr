@@ -5,7 +5,7 @@ require 'nya_pr'
 
 begin
   NyaPr.run
-rescue OptionParser::ParseError, NyaPr::Error => e
+rescue NyaPr::Error => e
   warn "nya-pr: #{e.message}"
   exit 1
 rescue Interrupt

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe NyaPr::Config::Global do
-  describe '.from_options' do
+RSpec.describe NyaPr::Config::Builder do
+  describe '.build' do
     it 'uses default values when options are not provided' do
-      config = described_class.from_options(
+      config = described_class.build(
         {
           username: 'nya-user'
         }
@@ -17,12 +17,13 @@ RSpec.describe NyaPr::Config::Global do
         skip_archived: false,
         skip_drafts: false,
         progress: true,
+        save_pull_requests: true,
         log_level: Logger::INFO
       )
     end
 
     it 'uses values from the config file' do
-      config = described_class.from_options(
+      config = described_class.build(
         {},
         file_options: {
           username: 'yaml-user',
@@ -45,7 +46,7 @@ RSpec.describe NyaPr::Config::Global do
     end
 
     it 'gives command line options precedence over config file options' do
-      config = described_class.from_options(
+      config = described_class.build(
         {
           username: 'cli-user',
           limit: 50,
@@ -70,7 +71,7 @@ RSpec.describe NyaPr::Config::Global do
     end
 
     it 'normalizes owners from different input formats' do
-      config = described_class.from_options(
+      config = described_class.build(
         {
           username: 'nya-user',
           owners: ['org-one, org-two', 'org-three']
@@ -84,7 +85,7 @@ RSpec.describe NyaPr::Config::Global do
 
     it 'rejects unknown config file options' do
       expect do
-        described_class.from_options(
+        described_class.build(
           {},
           file_options: {
             username: 'nya-user',
@@ -100,7 +101,7 @@ RSpec.describe NyaPr::Config::Global do
 
   it 'rejects invalid boolean values' do
     expect do
-      described_class.from_options(
+      described_class.build(
         {},
         file_options: {
           username: 'nya-user',
@@ -114,7 +115,7 @@ RSpec.describe NyaPr::Config::Global do
   end
 
   it 'normalizes excluded repositories' do
-    config = described_class.from_options(
+    config = described_class.build(
       {
         username: 'nya-user',
         exclude_repositories: ['User/Foo, Org/Bar', 'user/foo']

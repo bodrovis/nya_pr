@@ -4,7 +4,6 @@ RSpec.describe NyaPr::PullRequest::Finder do
   subject(:finder) do
     described_class.new(
       client,
-      repositories,
       config
     )
   end
@@ -69,7 +68,7 @@ RSpec.describe NyaPr::PullRequest::Finder do
           )
         )
 
-      pull_requests = finder.find
+      pull_requests = finder.find(repositories)
 
       expect(
         pull_requests.map { |pull_request| pull_request['number'] }
@@ -133,7 +132,7 @@ RSpec.describe NyaPr::PullRequest::Finder do
           )
         )
 
-      pull_requests = finder.find
+      pull_requests = finder.find(repositories)
 
       expect(
         pull_requests.map { |pull_request| pull_request['number'] }
@@ -162,7 +161,7 @@ RSpec.describe NyaPr::PullRequest::Finder do
     end
 
     it 'does not request pull requests' do
-      expect(finder.find).to be_empty
+      expect(finder.find(repositories)).to be_empty
 
       expect(
         a_request(:get, %r{/repos/nya-user/example/pulls})

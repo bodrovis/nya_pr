@@ -4,6 +4,7 @@ require 'zeitwerk'
 require 'logger'
 require 'csv'
 require 'dry/cli'
+require 'dotenv'
 
 loader = Zeitwerk::Loader.for_gem
 loader.setup
@@ -11,6 +12,8 @@ loader.setup
 module NyaPr
   class << self
     def run(argv = ARGV)
+      Dotenv.load
+
       Dry::CLI.new(Cli::Command).call(arguments: argv)
     end
 

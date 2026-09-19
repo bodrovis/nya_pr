@@ -2,14 +2,12 @@
 
 module NyaPr
   module PullRequest
-    class Config < Data.define(
+    Config = Data.define(
       :limit,
       :skip_drafts,
       :progress_enabled,
       :pull_requests_dir
-    )
-      DEFAULT_LIMIT = 100
-
+    ) do
       def self.from_app(config)
         new(
           limit: config.limit,

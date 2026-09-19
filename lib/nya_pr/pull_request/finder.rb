@@ -8,25 +8,27 @@ module NyaPr
       MAX_PER_PAGE = 100
 
       attr_reader :client,
-                  :repositories,
                   :config,
                   :filter
 
-      def initialize(client, repositories, config, filter: nil)
+      def initialize(client, config, filter: nil)
         @client = client
-        @repositories = repositories
         @config = config
         @filter = filter || Filter.new(config)
       end
 
-      def find
+      def find(repositories)
         NyaPr.logger.info(
           "Searching for up to #{config.limit} open pull requests " \
           "in #{repositories.size} repositories"
         )
 
-        progress_bar = build_progress
-        pull_requests = collect_pull_requests(progress_bar)
+        progress_bar = build_progress(repositories.size)
+
+        pull_requests = collect_pull_requests(
+          repositories,
+          progress_bar
+        )
 
         progress_bar.finish
 
@@ -39,7 +41,7 @@ module NyaPr
 
       private
 
-      def collect_pull_requests(progress_bar)
+      def collect_pull_requests(repositories, progress_bar)
         pull_requests = []
 
         repositories.each do |repository|
@@ -134,10 +136,10 @@ module NyaPr
         )
       end
 
-      def build_progress
+      def build_progress(total)
         Progress.new(
           '🐾 Checking pull requests',
-          total: repositories.size,
+          total: total,
           enabled: config.progress_enabled && $stderr.tty?
         )
       end

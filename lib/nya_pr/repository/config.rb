@@ -2,7 +2,7 @@
 
 module NyaPr
   module Repository
-    class Config < Data.define(
+    Config = Data.define(
       :username,
       :owners,
       :refresh,
@@ -11,9 +11,7 @@ module NyaPr
       :workers,
       :repositories_csv,
       :exclude_repositories
-    )
-      DEFAULT_WORKERS = 10
-
+    ) do
       def self.from_app(config)
         new(
           username: config.username,
