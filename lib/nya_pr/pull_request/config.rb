@@ -6,14 +6,16 @@ module NyaPr
       :limit,
       :skip_drafts,
       :progress_enabled,
-      :pull_requests_dir
+      :pull_requests_dir,
+      :workers
     ) do
       def self.from_app(config)
         new(
           limit: config.limit,
           skip_drafts: config.skip_drafts,
           progress_enabled: config.progress,
-          pull_requests_dir: config.pull_requests_dir
+          pull_requests_dir: config.pull_requests_dir,
+          workers: config.workers
         )
       end
     end

@@ -83,7 +83,20 @@ RSpec.describe NyaPr::Config::Builder do
       )
     end
 
-    it 'rejects unknown config file options' do
+    it 'normalizes excluded repositories' do
+      config = described_class.build(
+        {
+          username: 'nya-user',
+          exclude_repositories: ['User/Foo, Org/Bar', 'user/foo']
+        }
+      )
+
+      expect(config.exclude_repositories).to eq(
+        %w[user/foo org/bar]
+      )
+    end
+
+    it 'rejects unknown config options' do
       expect do
         described_class.build(
           {},
@@ -94,36 +107,51 @@ RSpec.describe NyaPr::Config::Builder do
         )
       end.to raise_error(
         NyaPr::Error,
-        'Unknown config option(s): skip_darfts'
+        /skip_darfts/
       )
     end
-  end
 
-  it 'rejects invalid boolean values' do
-    expect do
-      described_class.build(
-        {},
-        file_options: {
-          username: 'nya-user',
-          skip_drafts: 'yes'
-        }
+    it 'rejects invalid boolean values' do
+      expect do
+        described_class.build(
+          {},
+          file_options: {
+            username: 'nya-user',
+            skip_drafts: 'yes'
+          }
+        )
+      end.to raise_error(
+        NyaPr::Error,
+        /skip_drafts/
       )
-    end.to raise_error(
-      NyaPr::Error,
-      'skip_drafts must be true or false'
-    )
-  end
+    end
 
-  it 'normalizes excluded repositories' do
-    config = described_class.build(
-      {
-        username: 'nya-user',
-        exclude_repositories: ['User/Foo, Org/Bar', 'user/foo']
-      }
-    )
+    it 'rejects non-positive limits' do
+      expect do
+        described_class.build(
+          {
+            username: 'nya-user',
+            limit: 0
+          }
+        )
+      end.to raise_error(
+        NyaPr::Error,
+        /limit/
+      )
+    end
 
-    expect(config.exclude_repositories).to eq(
-      %w[user/foo org/bar]
-    )
+    it 'rejects invalid log levels' do
+      expect do
+        described_class.build(
+          {
+            username: 'nya-user',
+            log_level: 'bullshit'
+          }
+        )
+      end.to raise_error(
+        NyaPr::Error,
+        /log_level/
+      )
+    end
   end
 end

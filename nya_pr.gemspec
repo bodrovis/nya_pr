@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'csv', '~> 3.3'
   spec.add_dependency 'dotenv', '~> 3.2'
   spec.add_dependency 'dry-cli', '~> 1.4'
+  spec.add_dependency 'dry-schema', '~> 1.16'
   spec.add_dependency 'faraday', '~> 2.14'
   spec.add_dependency 'faraday-gzip', '~> 3'
   spec.add_dependency 'oj', '~> 3.10'

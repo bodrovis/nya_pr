@@ -11,14 +11,6 @@ module NyaPr
         'fatal' => Logger::FATAL
       }.freeze
 
-      BOOLEAN_KEYS = %i[
-        refresh
-        skip_archived
-        skip_drafts
-        progress
-        save_pull_requests
-      ].freeze
-
       def self.build(options, file_options: {})
         new(options, file_options).build
       end
@@ -29,14 +21,18 @@ module NyaPr
       end
 
       def build
-        validate_keys!
-
-        Global.new(
-          **normalize(
+        result = Schema.call(
+          normalize(
             Defaults::OPTIONS.
               merge(file_options).
               merge(options.compact)
           )
+        )
+
+        raise_config_error!(result) unless result.success?
+
+        Global.new(
+          **result.to_h, log_level: LOG_LEVELS.fetch(result[:log_level])
         )
       end
 
@@ -50,20 +46,12 @@ module NyaPr
           owners: normalize_list(attributes[:owners]),
           exclude_repositories: normalize_repositories(
             attributes[:exclude_repositories]
-          ),
-          limit: normalize_positive_integer(attributes[:limit], :limit),
-          workers: normalize_positive_integer(attributes[:workers], :workers),
-          log_level: normalize_log_level(attributes[:log_level]),
-          **normalize_booleans(attributes)
+          )
         )
       end
 
       def normalize_username(value)
-        username = value.to_s.strip
-
-        return username unless username.empty?
-
-        raise NyaPr::Error, 'GitHub username is required'
+        value&.to_s&.strip
       end
 
       def normalize_list(values)
@@ -79,41 +67,16 @@ module NyaPr
           uniq
       end
 
-      def normalize_booleans(attributes)
-        BOOLEAN_KEYS.to_h do |key|
-          [key, normalize_boolean(attributes[key], key)]
-        end
-      end
+      def raise_config_error!(result)
+        message = result.errors.to_h.
+                  flat_map do |key, messages|
+                    Array(messages).map do |error|
+                      "#{key} #{error}"
+                    end
+                  end.
+                  join(', ')
 
-      def normalize_positive_integer(value, name)
-        number = Integer(value)
-
-        return number if number.positive?
-
-        raise NyaPr::Error, "#{name} must be greater than 0"
-      rescue ArgumentError, TypeError
-        raise NyaPr::Error, "#{name} must be a positive integer"
-      end
-
-      def normalize_boolean(value, name)
-        return value if [true, false].include?(value)
-
-        raise NyaPr::Error, "#{name} must be true or false"
-      end
-
-      def normalize_log_level(value)
-        LOG_LEVELS.fetch(value.to_s) do
-          raise NyaPr::Error, "Invalid log level: #{value}"
-        end
-      end
-
-      def validate_keys!
-        unknown = file_options.keys - Global.members
-
-        return if unknown.empty?
-
-        raise NyaPr::Error,
-              "Unknown config option(s): #{unknown.join(', ')}"
+        raise NyaPr::Error, message
       end
     end
   end

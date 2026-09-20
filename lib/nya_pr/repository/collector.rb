@@ -49,7 +49,7 @@ module NyaPr
         store.write(repositories)
 
         NyaPr.logger.info(
-          "Saved #{repositories.size} repositories to #{store.path}"
+          "Selected #{repositories.size} repositories for pull request scanning"
         )
 
         repositories

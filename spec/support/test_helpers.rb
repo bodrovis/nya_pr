@@ -21,10 +21,11 @@ module TestHelpers
 
   def pull_request_config(**overrides)
     defaults = {
-      limit: NyaPr::Config::Defaults::LIMIT,
+      limit: NyaPr::Config::Defaults::OPTIONS.fetch(:limit),
       skip_drafts: false,
       progress_enabled: false,
-      pull_requests_dir: nil
+      pull_requests_dir: nil,
+      workers: 1
     }
 
     NyaPr::PullRequest::Config.new(

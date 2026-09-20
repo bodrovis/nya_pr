@@ -168,4 +168,159 @@ RSpec.describe NyaPr::PullRequest::Finder do
       ).not_to have_been_made
     end
   end
+
+  context 'when multiple repositories are processed in a batch' do
+    let(:repositories) do
+      [
+        {
+          'full_name' => 'nya-user/first',
+          'has_pull_requests' => true
+        },
+        {
+          'full_name' => 'nya-user/second',
+          'has_pull_requests' => true
+        }
+      ]
+    end
+
+    let(:config) do
+      pull_request_config(
+        limit: 10,
+        workers: 2
+      )
+    end
+
+    it 'preserves repository order in the result' do
+      stub_pull_requests_for(
+        'nya-user/first',
+        [pull_request(1, 'alice')]
+      )
+
+      stub_pull_requests_for(
+        'nya-user/second',
+        [pull_request(2, 'bob')]
+      )
+
+      pull_requests = finder.find(repositories)
+
+      expect(
+        pull_requests.map { |pull_request| pull_request['repository'] }
+      ).to eq(
+        [
+          'nya-user/first',
+          'nya-user/second'
+        ]
+      )
+    end
+  end
+
+  context 'when parallel repositories return more pull requests than the limit' do
+    let(:repositories) do
+      [
+        {
+          'full_name' => 'nya-user/first',
+          'has_pull_requests' => true
+        },
+        {
+          'full_name' => 'nya-user/second',
+          'has_pull_requests' => true
+        }
+      ]
+    end
+
+    let(:config) do
+      pull_request_config(
+        limit: 3,
+        workers: 2
+      )
+    end
+
+    it 'does not return more pull requests than the configured limit' do
+      stub_pull_requests_for(
+        'nya-user/first',
+        [
+          pull_request(1, 'alice'),
+          pull_request(2, 'bob')
+        ]
+      )
+
+      stub_pull_requests_for(
+        'nya-user/second',
+        [
+          pull_request(3, 'carol'),
+          pull_request(4, 'dave')
+        ]
+      )
+
+      pull_requests = finder.find(repositories)
+
+      expect(
+        pull_requests.map { |pull_request| pull_request['number'] }
+      ).to eq([1, 2, 3])
+    end
+  end
+
+  context 'when the limit is reached in a batch' do
+    let(:repositories) do
+      [
+        {
+          'full_name' => 'nya-user/first',
+          'has_pull_requests' => true
+        },
+        {
+          'full_name' => 'nya-user/second',
+          'has_pull_requests' => true
+        },
+        {
+          'full_name' => 'nya-user/third',
+          'has_pull_requests' => true
+        }
+      ]
+    end
+
+    let(:config) do
+      pull_request_config(
+        limit: 2,
+        workers: 2
+      )
+    end
+
+    it 'does not process repositories from the next batch' do
+      stub_pull_requests_for(
+        'nya-user/first',
+        [
+          pull_request(1, 'alice'),
+          pull_request(2, 'bob')
+        ]
+      )
+
+      stub_pull_requests_for(
+        'nya-user/second',
+        []
+      )
+
+      finder.find(repositories)
+
+      expect(
+        a_request(
+          :get,
+          %r{/repos/nya-user/third/pulls}
+        )
+      ).not_to have_been_made
+
+      expect(
+        a_request(
+          :get,
+          %r{/repos/nya-user/first/pulls}
+        )
+      ).to have_been_made.once
+
+      expect(
+        a_request(
+          :get,
+          %r{/repos/nya-user/second/pulls}
+        )
+      ).to have_been_made.once
+    end
+  end
 end

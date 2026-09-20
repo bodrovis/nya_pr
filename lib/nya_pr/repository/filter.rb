@@ -40,7 +40,7 @@ module NyaPr
 
       def log_start(repositories)
         NyaPr.logger.info(
-          "Checking contributions in #{repositories.size} repositories " \
+          "Checking contributions in #{repositories.size} external repositories " \
           "using #{workers} workers"
         )
       end
@@ -75,7 +75,7 @@ module NyaPr
 
       def log_result(result)
         NyaPr.logger.info(
-          "Finished contribution check: #{result.size} repositories matched"
+          "Finished contribution check: contributions found in #{result.size} repositories"
         )
       end
 

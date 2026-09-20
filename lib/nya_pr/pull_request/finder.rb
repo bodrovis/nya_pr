@@ -44,27 +44,56 @@ module NyaPr
       def collect_pull_requests(repositories, progress_bar)
         pull_requests = []
 
-        repositories.each do |repository|
-          break if pull_requests.size >= config.limit
+        repositories.each_slice(config.workers) do |repositories_batch|
+          remaining = config.limit - pull_requests.size
+          break unless remaining.positive?
 
-          process_repository(
-            repository,
-            pull_requests,
+          results = process_batch(
+            repositories_batch,
+            remaining,
             progress_bar
+          )
+
+          append_results(
+            pull_requests,
+            results
           )
         end
 
         pull_requests
       end
 
-      def process_repository(repository, pull_requests, progress_bar)
-        return unless pull_requests_enabled?(repository)
+      def process_batch(repositories, limit, progress_bar)
+        threads = repositories.map do |repository|
+          Thread.new do
+            Thread.current.report_on_exception = false
 
-        remaining = config.limit - pull_requests.size
+            process_repository(
+              repository,
+              limit,
+              progress_bar
+            )
+          end
+        end
 
-        pull_requests.concat(
-          pull_requests_for(repository, remaining)
-        )
+        threads.map(&:value)
+      end
+
+      def append_results(pull_requests, results)
+        results.each do |repository_pull_requests|
+          remaining = config.limit - pull_requests.size
+          break unless remaining.positive?
+
+          pull_requests.concat(
+            repository_pull_requests.first(remaining)
+          )
+        end
+      end
+
+      def process_repository(repository, limit, progress_bar)
+        return [] unless pull_requests_enabled?(repository)
+
+        pull_requests_for(repository, limit)
       ensure
         progress_bar.advance
       end
