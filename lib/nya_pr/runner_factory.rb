@@ -22,7 +22,7 @@ module NyaPr
     private
 
     attr_reader :config
-    
+
     def repository_config
       @repository_config ||= Repository::Config.from_app(config)
     end
